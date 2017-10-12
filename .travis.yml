@@ -15,7 +15,11 @@ script:
   - docker --version
   - go test -v $(go list ./... | grep -v /vendor/) -cover
   - if [[ "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]]; then
-      pip install --user awscli && export PATH=$PATH:$HOME/.local/bin && aws --version && docker build -t krul:${TRAVIS_TAG} . && docker images;
+      pip install --user awscli && 
+      export PATH=$PATH:$HOME/.local/bin && 
+      aws --version && 
+      docker build -t krul:${TRAVIS_TAG} . && 
+      docker images;
     else
       go build -v;
     fi
