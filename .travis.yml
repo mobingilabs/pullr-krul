@@ -1,17 +1,22 @@
+sudo: required
+
 os:
   - linux
 
 language: go
 
+services:
+  - docker
+
 go:
   - master
 
-before_install:
-  - go get github.com/golang/dep/...
-
-install:
-  - $GOPATH/bin/dep ensure
-
 script:
+  - if [[ "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]]; then
+      echo "this is a tag"
+    else
+      echo "this is a branch"
+    fi
+  - docker --version
   - go test -v $(go list ./... | grep -v /vendor/) -cover
   - go build -v
