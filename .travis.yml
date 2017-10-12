@@ -1,0 +1,17 @@
+os:
+  - linux
+
+language: go
+
+go:
+  - master
+
+before_install:
+  - go get github.com/golang/dep/...
+
+install:
+  - $GOPATH/bin/dep ensure
+
+script:
+  - go test -v $(go list ./... | grep -v /vendor/) -cover
+  - go build -v
