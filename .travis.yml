@@ -15,15 +15,19 @@ script:
   - docker --version
   - go test -v $(go list ./... | grep -v /vendor/) -cover
   - if [[ "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]]; then
-      pip install --user awscli && 
-      export PATH=$PATH:$HOME/.local/bin && 
-      aws --version && 
+      pip install --user awscli;
+      export PATH=$PATH:$HOME/.local/bin;
+      aws --version;
+      eval $(aws ecr get-login --region ap-northeast-1);
       if [[ $TRAVIS_TAG == *"dev"* ]]; then
-        docker build -t kruldev:${TRAVIS_TAG} .;
+        export PULLR_IMAGE_NAME=kruldev:${TRAVIS_TAG};
       else
-        docker build -t krul:${TRAVIS_TAG} .;
-      fi && 
+        export PULLR_IMAGE_NAME=krul:${TRAVIS_TAG};
+      fi;
+      docker build -t ${PULLR_IMAGE_NAME} .;
       docker images;
+      docker tag ${PULLR_IMAGE_NAME} 963826138034.dkr.ecr.ap-northeast-1.amazonaws.com/${PULLR_IMAGE_NAME};
+      docker push 963826138034.dkr.ecr.ap-northeast-1.amazonaws.com/${PULLR_IMAGE_NAME};
     else
       go build -v;
     fi
