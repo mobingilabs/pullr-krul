@@ -18,7 +18,11 @@ script:
       pip install --user awscli && 
       export PATH=$PATH:$HOME/.local/bin && 
       aws --version && 
-      docker build -t krul:${TRAVIS_TAG} . && 
+      if [[ $TRAVIS_TAG == *"dev"* ]]; then
+        docker build -t kruldev:${TRAVIS_TAG} .;
+      else
+        docker build -t krul:${TRAVIS_TAG} .;
+      fi && 
       docker images;
     else
       go build -v;
