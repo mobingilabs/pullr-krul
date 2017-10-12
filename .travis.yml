@@ -13,9 +13,9 @@ go:
 
 script:
   - if [[ "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]]; then
-      echo "this is a tag"
+      echo "this is a tag";
     else
-      echo "this is a branch"
+      echo "this is a branch";
     fi
   - docker --version
   - go test -v $(go list ./... | grep -v /vendor/) -cover
