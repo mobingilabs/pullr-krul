@@ -12,11 +12,14 @@ go:
   - master
 
 script:
-  - if [[ "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]]; then
-      echo "this is a tag";
-    else
-      echo "this is a branch";
-    fi
   - docker --version
   - go test -v $(go list ./... | grep -v /vendor/) -cover
-  - go build -v
+  - if [[ "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]]; then
+      pip install --user awscli && \
+      export PATH=$PATH:$HOME/.local/bin && \
+      aws && \
+      docker build -t krul . && \
+      docker images;
+    else
+      go build -v;
+    fi
