@@ -82,7 +82,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintln(w, eventsJson)
+	w.Write(eventsJson)
 }
 
 func main() {
