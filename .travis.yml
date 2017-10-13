@@ -21,6 +21,10 @@ script:
       eval $(aws ecr get-login --region ap-northeast-1);
       if [[ $TRAVIS_TAG == *"dev"* ]]; then
         export PULLR_IMAGE_NAME=kruldev:${TRAVIS_TAG};
+        export SERVICE_NAME=kruldev
+        export TASK_NAME=kruldev
+        export REPOSITORY_NAME=kruldev
+        export CONTAINER_NAME=kruldev
       else
         export PULLR_IMAGE_NAME=krul:${TRAVIS_TAG};
       fi;
@@ -28,6 +32,7 @@ script:
       docker images;
       docker tag ${PULLR_IMAGE_NAME} 963826138034.dkr.ecr.ap-northeast-1.amazonaws.com/${PULLR_IMAGE_NAME};
       docker push 963826138034.dkr.ecr.ap-northeast-1.amazonaws.com/${PULLR_IMAGE_NAME};
+      sh ./update-ecs.sh;
     else
       go build -v;
     fi
