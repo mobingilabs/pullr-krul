@@ -1,0 +1,18 @@
+{
+    "family": "%TASK_NAME%",
+    "containerDefinitions": [
+        {
+            "image": "%REPOSITORY_URI%:%BUILD_TAG%",
+            "name": "%CONTAINER_NAME%",
+            "cpu": 10,
+            "memory": 256,
+            "essential": true,
+            "portMappings": [
+                {
+                    "containerPort": 3000,
+                    "hostPort": 80
+                }
+            ]
+        }
+    ]
+}
