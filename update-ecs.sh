@@ -1,7 +1,7 @@
 REPOSITORY_URI=`aws ecr describe-repositories --repository-names ${REPOSITORY_NAME} --region ${REGION} | jq .repositories[].repositoryUri | tr -d '"'`;
 DESIRED_COUNT=`aws ecs describe-services --services ${SERVICE_NAME} --cluster ${CLUSTER} --region ${REGION} | jq .services[].desiredCount`;
 
-if [ ${DESIRED_COUNT} = "0" ]; then
+if [ -z "${DESIRED_COUNT}" ] || [ ${DESIRED_COUNT} = "0" ]; then
 	DESIRED_COUNT="1";
 fi
 
