@@ -4,14 +4,27 @@ import (
 	"time"
 )
 
+// Digest allows simple protection of hex formatted digest strings, prefixed
+// by their algorithm. Strings of type Digest have some guarantee of being in
+// the correct format and it provides quick access to the components of a
+// digest string.
+//
+// The following is an example of the contents of Digest types:
+//
+// 	sha256:7173b809ca12ec5dee4506cd86be934c4596dd234ee82c0662eac04a8c2c71dc
+//
+// This allows to abstract the digest behind this type and work only in those
+// terms.
+// Copied from github.com/opencontainers/go-digest/digest.go
 type Digest string
 
+// RegistryNotification defines the fields of a json event envelope message that can hold
+// one or more events. Definitions are copied from https://github.com/docker/distribution/blob/master/notifications/event.go#L42
 type RegistryNotification struct {
 	Events []RegistryEvent `json:"events"`
 }
 
-// Definitions are copied from https://github.com/docker/distribution/blob/master/notifications/event.go#L42
-
+// RegistryEvent provides the fields required to describe a registry event.
 type RegistryEvent struct {
 	// ID provides a unique identifier for the event.
 	ID string `json:"id,omitempty"`
@@ -59,6 +72,10 @@ type RegistryEvent struct {
 	Source SourceRecord `json:"source,omitempty"`
 }
 
+// Descriptor describes targeted content. Used in conjunction with a blob
+// store, a descriptor can be used to fetch, store and target any kind of
+// blob. The struct also describes the wire protocol format. Fields should
+// only be added but never changed.
 type Descriptor struct {
 	// MediaType describe the type of the content. All text based formats are
 	// encoded as utf-8.
@@ -75,6 +92,7 @@ type Descriptor struct {
 	URLs []string `json:"urls,omitempty"`
 }
 
+// RequestRecord covers the request that generated the event.
 type RequestRecord struct {
 	// ID uniquely identifies the request that initiated the event.
 	ID string `json:"id"`
@@ -95,12 +113,19 @@ type RequestRecord struct {
 	UserAgent string `json:"useragent"`
 }
 
+// ActorRecord specifies the agent that initiated the event. For most
+// situations, this could be from the authorization context of the request.
+// Data in this record can refer to both the initiating client and the
+// generating request.
 type ActorRecord struct {
 	// Name corresponds to the subject or username associated with the
 	// request context that generated the event.
 	Name string `json:"name,omitempty"`
 }
 
+// SourceRecord identifies the registry node that generated the event. Put
+// differently, while the actor "initiates" the event, the source "generates"
+// it.
 type SourceRecord struct {
 	// Addr contains the ip or hostname and the port of the registry node
 	// that generated the event. Generally, this will be resolved by
