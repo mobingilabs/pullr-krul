@@ -87,9 +87,9 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/registry", dockerRegistryHandler)
-	http.HandleFunc("/github", githubHandler)
-	http.HandleFunc("/", index)
+	http.HandleFunc("/registry", LogRequest("dockerRegistryHandler", dockerRegistryHandler))
+	http.HandleFunc("/github", LogRequest("githubHandler", githubHandler))
+	http.HandleFunc("/", LogRequest("index", index))
 
 	hostport := "0.0.0.0:80"
 	log.Printf("Krul start listening at %v...", hostport)
