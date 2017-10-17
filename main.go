@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// Event is the common event wrapper structure for the events coming from sources
+// like github, docker registry and others
 type Event struct {
 	CreatedAt      time.Time           `json:"createdAt"`
 	Source         string              `json:"source"`
@@ -15,11 +17,11 @@ type Event struct {
 	PayloadHeaders map[string][]string `json:"payloadHeaders"` // TODO: make it map[string]string, concatenate header values (`;`)
 }
 
-const EVENT_SOURCE_GITHUB = "github"
-const EVENT_SOURCE_DOCKER_REGISTRY = "docker-registry"
+const eventSourceGithub = "github"
+const eventSourceDockerRegistry = "docker-registry"
 
 // Dummy events storage for testing, may end up having concurrency issues
-var Events = []Event{}
+var events = []Event{}
 
 func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("New registry event arrived...")
@@ -35,13 +37,13 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: Maybe just pass the payload as it is if the parsing fails
 	err = json.Unmarshal(body, &notification)
 	if err != nil || len(notification.Events) == 0 {
-		log.Println("Event payload is not right...")
+		log.Println("event payload is not right...")
 		w.WriteHeader(400)
 		return
 	}
 
 	for _, event := range notification.Events {
-		eventJson, err := json.Marshal(event)
+		eventJSON, err := json.Marshal(event)
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
 			w.WriteHeader(500)
@@ -50,7 +52,7 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// TODO: Maybe not to send all headers?
-		Events = append(Events, Event{CreatedAt: time.Now(), Payload: string(eventJson), PayloadHeaders: r.Header, Source: EVENT_SOURCE_DOCKER_REGISTRY})
+		events = append(events, Event{CreatedAt: time.Now(), Payload: string(eventJSON), PayloadHeaders: r.Header, Source: eventSourceDockerRegistry})
 	}
 
 	w.WriteHeader(200)
@@ -67,13 +69,13 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	Events = append(Events, Event{CreatedAt: time.Now(), Payload: string(body), PayloadHeaders: r.Header, Source: EVENT_SOURCE_GITHUB})
+	events = append(events, Event{CreatedAt: time.Now(), Payload: string(body), PayloadHeaders: r.Header, Source: eventSourceGithub})
 
 	w.WriteHeader(200)
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	eventsJson, err := json.Marshal(Events)
+	eventsJSON, err := json.Marshal(events)
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
 		w.WriteHeader(500)
@@ -81,7 +83,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(eventsJson)
+	w.Write(eventsJSON)
 }
 
 func main() {
@@ -89,7 +91,7 @@ func main() {
 	http.HandleFunc("/github", githubHandler)
 	http.HandleFunc("/", index)
 
-	hostport := "0.0.0.0:3000"
+	hostport := "0.0.0.0:80"
 	log.Printf("Krul start listening at %v...", hostport)
-	http.ListenAndServe(hostport, nil)
+	log.Fatal(http.ListenAndServe(hostport, nil))
 }
