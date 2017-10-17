@@ -88,5 +88,8 @@ func main() {
 	http.HandleFunc("/registry", dockerRegistryHandler)
 	http.HandleFunc("/github", githubHandler)
 	http.HandleFunc("/", index)
-	http.ListenAndServe(":3000", nil)
+
+	hostport := "0.0.0.0:3000"
+	log.Printf("Krul start listening at %v...", hostport)
+	http.ListenAndServe(hostport, nil)
 }
