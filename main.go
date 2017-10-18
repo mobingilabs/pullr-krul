@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -59,7 +60,8 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 		events = append(events, Event{CreatedAt: time.Now(), Payload: string(eventJSON), PayloadHeaders: r.Header, Source: eventSourceDockerRegistry})
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "{\"status\": 200}")
 }
 
 func githubHandler(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +77,8 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 
 	events = append(events, Event{CreatedAt: time.Now(), Payload: string(body), PayloadHeaders: r.Header, Source: eventSourceGithub})
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "{\"status\": 200}")
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -91,14 +94,14 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "", http.StatusNotFound)
+	http.NotFound(w, r)
 }
 
 func main() {
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api").Subrouter()
-	api.HandleFunc("/registry", LogRequest("dockerRegistryHandler", dockerRegistryHandler))
-	api.HandleFunc("/github", LogRequest("githubHandler", githubHandler))
+	api.HandleFunc("/registry", LogRequest("dockerRegistryHandler", dockerRegistryHandler)).Methods("POST")
+	api.HandleFunc("/github", LogRequest("githubHandler", githubHandler)).Methods("POST")
 	api.HandleFunc("/", LogRequest("index", index))
 	r.PathPrefix("/").HandlerFunc(LogRequest("404 Not Found", notFound))
 
