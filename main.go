@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 // Event is the common event wrapper structure for the events coming from sources
@@ -28,8 +30,10 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+		log.Printf("ERROR: %s\n", err)
 		// TODO: Better error handling
-		log.Fatal(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
 
 	var notification RegistryNotification
@@ -38,7 +42,7 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &notification)
 	if err != nil || len(notification.Events) == 0 {
 		log.Println("event payload is not right...")
-		w.WriteHeader(400)
+		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 
@@ -46,8 +50,8 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 		eventJSON, err := json.Marshal(event)
 		if err != nil {
 			log.Printf("ERROR: %s\n", err)
-			w.WriteHeader(500)
 			// TODO: Better error handling
+			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
 
@@ -55,7 +59,7 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 		events = append(events, Event{CreatedAt: time.Now(), Payload: string(eventJSON), PayloadHeaders: r.Header, Source: eventSourceDockerRegistry})
 	}
 
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 func githubHandler(w http.ResponseWriter, r *http.Request) {
@@ -64,21 +68,21 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(500)
 		// TODO: Better error handling
+		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
 	events = append(events, Event{CreatedAt: time.Now(), Payload: string(body), PayloadHeaders: r.Header, Source: eventSourceGithub})
 
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
 	eventsJSON, err := json.Marshal(events)
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(500)
+		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -86,10 +90,19 @@ func index(w http.ResponseWriter, r *http.Request) {
 	w.Write(eventsJSON)
 }
 
+func notFound(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "", http.StatusNotFound)
+}
+
 func main() {
-	http.HandleFunc("/registry", LogRequest("dockerRegistryHandler", dockerRegistryHandler))
-	http.HandleFunc("/github", LogRequest("githubHandler", githubHandler))
-	http.HandleFunc("/", LogRequest("index", index))
+	r := mux.NewRouter()
+	api := r.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/registry", LogRequest("dockerRegistryHandler", dockerRegistryHandler))
+	api.HandleFunc("/github", LogRequest("githubHandler", githubHandler))
+	api.HandleFunc("/", LogRequest("index", index))
+	r.PathPrefix("/").HandlerFunc(LogRequest("404 Not Found", notFound))
+
+	http.Handle("/", r)
 
 	hostport := "0.0.0.0:80"
 	log.Printf("Krul start listening at %v...", hostport)

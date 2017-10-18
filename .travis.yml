@@ -11,6 +11,12 @@ services:
 go:
   - master
 
+before_install:
+  - go get github.com/golang/dep/...
+
+install:
+  - $GOPATH/bin/dep ensure
+
 script:
   - docker --version
   - go test -v $(go list ./... | grep -v /vendor/) -cover
