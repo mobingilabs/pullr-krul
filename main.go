@@ -97,11 +97,16 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "{\"status\": 200}")
+}
+
 func main() {
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/registry", LogRequest("dockerRegistryHandler", dockerRegistryHandler)).Methods("POST")
 	api.HandleFunc("/github", LogRequest("githubHandler", githubHandler)).Methods("POST")
+	api.HandleFunc("/healthcheck", LogRequest("healthCheck", healthCheck))
 	api.HandleFunc("/", LogRequest("index", index))
 	r.PathPrefix("/").HandlerFunc(LogRequest("404 Not Found", notFound))
 
