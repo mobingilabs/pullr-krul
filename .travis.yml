@@ -22,22 +22,16 @@ script:
   - go test -v $(go list ./... | grep -v /vendor/) -cover
   - if [[ "$TRAVIS_BRANCH" == "$TRAVIS_TAG" ]]; then
       pip install --user awscli;
-
       export PATH=$PATH:$HOME/.local/bin;
-
       export CLUSTER="pullr-ecs";
       export REGION="ap-northeast-1";
       export ECR_REPO_URI="963826138034.dkr.ecr.${REGION}.amazonaws.com";
-
       export IMAGE_NAME=pullrkrul;
       export REPOSITORY_NAME="pullrkrul";
       export IMAGE_URI="${ECR_REPO_URI}/${REPOSITORY_NAME}";
       export VERTSION_TAG=`echo ${TARVIS_TAG} | tr -d "\-dev" | tr -d "\-alpha"`;
-
       aws --version;
       eval $(aws ecr get-login --region ${REGION});
-
-      # Build and deploy version tagged image 
       docker images;
       docker build -t pullrkrul:${VERSION_TAG} .;
       docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:${VERSION_TAG};
@@ -46,7 +40,6 @@ script:
         # Update dev tag in the repository to the new version
         docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:dev;
         docker push ${IMAGE_URI}:dev;
-
         export BUILD_TAG="dev";
         export SERVICE_NAME="pullrkrul-dev";
         export TASK_NAME="pullrkrul-dev";
@@ -55,7 +48,6 @@ script:
         # Update latest tag in the repository to the new version
         docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:latest;
         docker push ${IMAGE_URI}:latest;
-
         export BUILD_TAG="latest";
         export SERVICE_NAME="pullrkrul";
         export TASK_NAME="pullrkrul";
