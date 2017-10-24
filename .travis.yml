@@ -30,7 +30,7 @@ script:
       export REPOSITORY_NAME="pullrkrul";
       export IMAGE_URI="${ECR_REPO_URI}/${REPOSITORY_NAME}";
       export VERSION_TAG=`echo ${TRAVIS_TAG} | tr -d "\\-dev" | tr -d "\\-alpha"`;
-      echo "VERSION_TAG=${VERSION_TAG}"
+      echo "VERSION_TAG=${VERSION_TAG}";
       aws --version;
       eval $(aws ecr get-login --region ${REGION});
       docker images;
