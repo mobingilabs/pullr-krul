@@ -34,7 +34,7 @@ script:
       aws --version;
       eval $(aws ecr get-login --region ${REGION});
       docker images;
-      docker build -t pullrkrul:${VERSION_TAG} .;
+      docker build --build-arg PULLR_TAG=${VERSION_TAG} -t pullrkrul:${VERSION_TAG} .;
       docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:${VERSION_TAG};
       docker push ${IMAGE_URI}:${VERSION_TAG};
       if [[ $TRAVIS_TAG == *"dev"* ]]; then

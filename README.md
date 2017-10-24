@@ -4,3 +4,10 @@ Copyright (c) [Mobingi](https://mobingi.co.jp/) 2017. All rights reserved.
 
 [![Build Status](https://travis-ci.org/mobingilabs/pullr-krul.svg)](https://travis-ci.org/mobingilabs/pullr-krul)
 
+## How to build
+
+```
+$ go generate
+$ go build
+```
+

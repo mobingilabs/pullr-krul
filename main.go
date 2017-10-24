@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const Version = "v0.0.23"
+//go:generate go run gen_version.go
 
 // Event is the common event wrapper structure for the events coming from sources
 // like github, docker registry and others
