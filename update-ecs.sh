@@ -1,13 +1,10 @@
-REPOSITORY_URI=`aws ecr describe-repositories --repository-names ${REPOSITORY_NAME} --region ${REGION} | jq .repositories[].repositoryUri | tr -d '"'`;
 DESIRED_COUNT=`aws ecs describe-services --services ${SERVICE_NAME} --cluster ${CLUSTER} --region ${REGION} | jq .services[].desiredCount`;
 
 if [ -z "${DESIRED_COUNT}" ] || [ ${DESIRED_COUNT} = "0" ]; then
 	DESIRED_COUNT="1";
 fi;
 
-BUILD_TAG=$TRAVIS_TAG;
-
-echo "Repository URI: ${REPOSITORY_URI}";
+echo "Repository Image URI: ${IMAGE_URI}";
 echo "Desired count: ${DESIRED_COUNT}";
 
 sed -e "s;%BUILD_TAG%;${BUILD_TAG};g"\
