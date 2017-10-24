@@ -37,7 +37,6 @@ script:
       docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:${VERSION_TAG};
       docker push ${ECR_REPO_URI}/${PULLR_IMAGE_NAME};
       if [[ $TRAVIS_TAG == *"dev"* ]]; then
-        # Update dev tag in the repository to the new version
         docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:dev;
         docker push ${IMAGE_URI}:dev;
         export BUILD_TAG="dev";
@@ -45,7 +44,6 @@ script:
         export TASK_NAME="pullrkrul-dev";
         export CONTAINER_NAME="pullrkrul-dev";
       else
-        # Update latest tag in the repository to the new version
         docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:latest;
         docker push ${IMAGE_URI}:latest;
         export BUILD_TAG="latest";
