@@ -11,6 +11,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const Version = "v0.0.23"
+
 // Event is the common event wrapper structure for the events coming from sources
 // like github, docker registry and others
 type Event struct {
@@ -97,8 +99,8 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
-func healthCheck(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "{\"status\": 200}")
+func version(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "{\"version\": \"%s\"}", Version)
 }
 
 func main() {
@@ -106,7 +108,7 @@ func main() {
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/registry", LogRequest("dockerRegistryHandler", dockerRegistryHandler)).Methods("POST")
 	api.HandleFunc("/github", LogRequest("githubHandler", githubHandler)).Methods("POST")
-	api.HandleFunc("/healthcheck", LogRequest("healthCheck", healthCheck))
+	api.HandleFunc("/version", LogRequest("version", version))
 	api.HandleFunc("/", LogRequest("index", index))
 	r.PathPrefix("/").HandlerFunc(LogRequest("404 Not Found", notFound))
 
