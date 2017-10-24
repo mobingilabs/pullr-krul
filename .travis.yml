@@ -36,7 +36,7 @@ script:
       docker images;
       docker build -t pullrkrul:${VERSION_TAG} .;
       docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:${VERSION_TAG};
-      docker push ${ECR_REPO_URI}/${PULLR_IMAGE_NAME};
+      docker push ${IMAGE_URI}:${VERSION_TAG};
       if [[ $TRAVIS_TAG == *"dev"* ]]; then
         docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:dev;
         docker push ${IMAGE_URI}:dev;
