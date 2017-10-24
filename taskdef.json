@@ -2,7 +2,7 @@
     "family": "%TASK_NAME%",
     "containerDefinitions": [
         {
-            "image": "%REPOSITORY_URI%:%BUILD_TAG%",
+            "image": "%IMAGE_URI%:%BUILD_TAG%",
             "name": "%CONTAINER_NAME%",
             "cpu": 10,
             "memory": 256,

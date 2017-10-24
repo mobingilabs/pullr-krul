@@ -11,7 +11,7 @@ echo "Repository URI: ${REPOSITORY_URI}";
 echo "Desired count: ${DESIRED_COUNT}";
 
 sed -e "s;%BUILD_TAG%;${BUILD_TAG};g"\
-    -e "s;%REPOSITORY_URI%;${REPOSITORY_URI};g"\
+    -e "s;%IMAGE_URI%;${IMAGE_URI};g"\
     -e "s;%TASK_NAME%;${TASK_NAME};g"\
     -e "s;%CONTAINER_NAME%;${CONTAINER_NAME};g"\
     taskdef.json > ${TASK_NAME}-${BUILD_TAG}.json;
