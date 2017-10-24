@@ -1,8 +1,5 @@
 pullr-krul
 
-# Generated source
-version.go
-
 # Binaries for programs and plugins
 *.exe
 *.dll
