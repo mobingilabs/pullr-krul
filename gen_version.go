@@ -31,6 +31,7 @@ func main() {
 	if len(envTag) > 0 && versionRegexp.MatchString(envTag) {
 		version := versionRegexp.FindString(envTag)
 		packageTemplate.Execute(f, struct{ Version string }{Version: version})
+		return
 	}
 
 	var gitTagBuffer bytes.Buffer
