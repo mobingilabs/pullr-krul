@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
 )
 
@@ -27,6 +28,11 @@ const eventSourceDockerRegistry = "docker-registry"
 
 // Dummy events storage for testing, may end up having concurrency issues
 var events = []Event{}
+
+func ok(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "{\"status\": 200}")
+}
 
 func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("New registry event arrived...")
@@ -62,25 +68,59 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 		events = append(events, Event{CreatedAt: time.Now(), Payload: string(eventJSON), PayloadHeaders: r.Header, Source: eventSourceDockerRegistry})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, "{\"status\": 200}")
+	ok(w)
 }
 
 func githubHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("New github event arrived...")
 
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Printf("ERROR: %s\n", err)
-		// TODO: Better error handling
-		http.Error(w, "", http.StatusInternalServerError)
+	validWebhook := validateGithubWebhook(r)
+	if !validWebhook {
+		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 
-	events = append(events, Event{CreatedAt: time.Now(), Payload: string(body), PayloadHeaders: r.Header, Source: eventSourceGithub})
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("ERROR: %v", err)
+	}
+	r.Body.Close()
 
-	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, "{\"status\": 200}")
+	switch githubEvent(r) {
+	case PushEvent:
+		var event github.PushEvent
+		if err := json.Unmarshal(body, &event); err != nil {
+			log.Println("ERROR: Couldn't parse push event payload")
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		// TODO: Validate/Check the pusher (ALM account?) or secretkey/url can be unique to user?
+
+		// TODO: We should better give responsibility of finding docker file and sending a message to icarium
+		// to another goproc because github has request timeout set to 10 seconds. It seems better to
+		// return a response asap.
+		// (see: https://developer.github.com/changes/2017-09-12-changes-to-maximum-webhook-timeout-period/)
+		githubToken := "3733101557ce4f040918e052db6370ab44b63b92"
+		repositoryFullname := event.Repo.FullName
+		commitHash := event.HeadCommit.TreeID
+		dockerfileUrl := fmt.Sprintf("https://%s:x-oauth-basic@raw.githubusercontent.com/%s/%s/Dockerfile", githubToken, repositoryFullname, commitHash)
+		response, err := http.Get(dockerfileUrl)
+		if err != nil {
+			log.Printf("Failed to check Dockerfile for the repository %v", repositoryFullname)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		dockerFileExists := response.StatusCode >= 200 && response.StatusCode < 300
+		if dockerFileExists {
+			log.Printf("Dispatching build action for %s...", repositoryFullname)
+			// TODO: Dispatch build action on queue
+		}
+	}
+
+	events = append(events, Event{CreatedAt: time.Now(), Payload: string(body), PayloadHeaders: r.Header, Source: eventSourceGithub})
+	ok(w)
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
