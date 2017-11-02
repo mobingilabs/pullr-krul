@@ -129,6 +129,11 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		body, err := ioutil.ReadAll(response.Body)
+		if err == nil {
+			log.Printf("Dockerfile check response: %v", string(body))
+		}
+
 		dockerFileExists := response.StatusCode >= 200 && response.StatusCode < 300
 		if dockerFileExists {
 			log.Printf("Dispatching build action for %s...\n", repositoryFullname)
