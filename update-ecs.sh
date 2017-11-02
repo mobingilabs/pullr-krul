@@ -7,13 +7,12 @@ fi;
 echo "Repository Image URI: ${IMAGE_URI}";
 echo "Desired count: ${DESIRED_COUNT}";
 
-sed -e "s;%BUILD_TAG%;${BUILD_TAG};g"\
-    -e "s;%IMAGE_URI%;${IMAGE_URI};g"\
-    -e "s;%TASK_NAME%;${TASK_NAME};g"\
-    -e "s;%CONTAINER_NAME%;${CONTAINER_NAME};g"\
-    taskdef.json > ${TASK_NAME}-${BUILD_TAG}.json;
+TASK_DEFINITION=`aws ecs describe-task-definition --task-definition ${TASK_NAME} | jq '.taskDefinition|{family, containerDefinitions}' -c -M`;
+
 
 echo "Registering the task definition...";
+echo $TASK_DEFINITION;
+
 aws ecs register-task-definition --family ${TASK_NAME} --cli-input-json file://`pwd`/${TASK_NAME}-${BUILD_TAG}.json --region ${REGION};
 
 REVISION=`aws ecs describe-task-definition --task-definition ${TASK_NAME} --region ${REGION} | jq .taskDefinition.revision`;
