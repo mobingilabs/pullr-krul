@@ -134,6 +134,8 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Dispatching build action for %s...\n", repositoryFullname)
 			// TODO: Dispatch build action on queue
 		}
+
+		log.Println("No Dockerfile found...")
 	}
 
 	events = append(events, Event{CreatedAt: time.Now(), Payload: string(body), PayloadHeaders: r.Header, Source: eventSourceGithub})
