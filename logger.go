@@ -12,7 +12,7 @@ func LogRequest(handlerName string, handler func(http.ResponseWriter, *http.Requ
 	// TODO: We don't need a new Logger for every handler(?)
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger.Printf("[req] %v %v => %v", r.Method, r.URL, handlerName)
+		logger.Printf("[req] %v %v => %v\n", r.Method, r.URL, handlerName)
 		handler(w, r)
 	}
 }

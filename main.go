@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -29,13 +30,29 @@ const eventSourceDockerRegistry = "docker-registry"
 // Dummy events storage for testing, may end up having concurrency issues
 var events = []Event{}
 
+func main() {
+	r := mux.NewRouter()
+	api := r.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/registry", LogRequest("dockerRegistryHandler", dockerRegistryHandler)).Methods("POST")
+	api.HandleFunc("/github", LogRequest("githubHandler", githubHandler)).Methods("POST")
+	api.HandleFunc("/version", LogRequest("version", version))
+	api.HandleFunc("/", LogRequest("index", index))
+	r.PathPrefix("/").HandlerFunc(LogRequest("404 Not Found", notFound))
+
+	http.Handle("/", r)
+
+	hostport := "0.0.0.0:80"
+	log.Printf("Krul start listening at %v...", hostport)
+	log.Fatal(http.ListenAndServe(hostport, nil))
+}
+
 func ok(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "{\"status\": 200}")
 }
 
 func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("New registry event arrived...")
+	fmt.Fprintf(os.Stdout, "New registry event arrived...\n")
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -72,7 +89,7 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func githubHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("New github event arrived...")
+	fmt.Fprintf(os.Stdout, "New github event arrived...\n")
 
 	validWebhook := validateGithubWebhook(r)
 	if !validWebhook {
@@ -107,14 +124,14 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 		dockerfileUrl := fmt.Sprintf("https://%s:x-oauth-basic@raw.githubusercontent.com/%s/%s/Dockerfile", githubToken, repositoryFullname, commitHash)
 		response, err := http.Get(dockerfileUrl)
 		if err != nil {
-			log.Printf("Failed to check Dockerfile for the repository %v", repositoryFullname)
+			log.Printf("Failed to check Dockerfile for the repository %v\n", repositoryFullname)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
 
 		dockerFileExists := response.StatusCode >= 200 && response.StatusCode < 300
 		if dockerFileExists {
-			log.Printf("Dispatching build action for %s...", repositoryFullname)
+			log.Printf("Dispatching build action for %s...\n", repositoryFullname)
 			// TODO: Dispatch build action on queue
 		}
 	}
@@ -141,20 +158,4 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 
 func version(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "{\"version\": \"%s\"}", Version)
-}
-
-func main() {
-	r := mux.NewRouter()
-	api := r.PathPrefix("/api").Subrouter()
-	api.HandleFunc("/registry", LogRequest("dockerRegistryHandler", dockerRegistryHandler)).Methods("POST")
-	api.HandleFunc("/github", LogRequest("githubHandler", githubHandler)).Methods("POST")
-	api.HandleFunc("/version", LogRequest("version", version))
-	api.HandleFunc("/", LogRequest("index", index))
-	r.PathPrefix("/").HandlerFunc(LogRequest("404 Not Found", notFound))
-
-	http.Handle("/", r)
-
-	hostport := "0.0.0.0:80"
-	log.Printf("Krul start listening at %v...", hostport)
-	log.Fatal(http.ListenAndServe(hostport, nil))
 }
