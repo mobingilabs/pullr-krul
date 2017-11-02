@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -52,7 +51,7 @@ func ok(w http.ResponseWriter) {
 }
 
 func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(os.Stdout, "New registry event arrived...\n")
+	log.Println("New registry event arrived...")
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -89,7 +88,7 @@ func dockerRegistryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func githubHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(os.Stdout, "New github event arrived...\n")
+	log.Println("New github event arrived...")
 
 	validWebhook := validateGithubWebhook(r)
 	if !validWebhook {

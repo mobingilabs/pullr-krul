@@ -10,27 +10,19 @@ const (
 	UserAgentPrefix = "GitHub-Hookshot"
 )
 
-func headerValue(r *http.Request, key string) string {
-	header, ok := r.Header[key]
-	if !ok {
-		return ""
-	}
-
-	first := header[0]
-	if !ok {
-		return ""
-	}
-
-	return first
-}
-
 func githubEvent(r *http.Request) string {
-	return headerValue(r, "X-GitHub-Event")
+	event, ok := r.Header["X-Github-Event"]
+	if !ok {
+		return ""
+	}
+
+	return event[0]
 }
 
 func validateGithubWebhook(r *http.Request) bool {
-	userAgent := headerValue(r, "User-Agent")
-	if !strings.HasPrefix(userAgent, UserAgentPrefix) {
+	userAgent, ok := r.Header["User-Agent"]
+
+	if !ok || !strings.HasPrefix(userAgent[0], UserAgentPrefix) {
 		return false
 	}
 
