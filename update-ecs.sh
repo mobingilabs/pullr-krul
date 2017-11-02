@@ -7,11 +7,11 @@ fi;
 echo "Repository Image URI: ${IMAGE_URI}";
 echo "Desired count: ${DESIRED_COUNT}";
 
-aws ecs describe-task-definition --task-definition ${TASK_NAME} | jq '.taskDefinition|{family, containerDefinitions}' -c -M > taskdef.json
+aws ecs describe-task-definition --task-definition ${TASK_NAME} --region ap-northeast-1 | jq '.taskDefinition|{family, containerDefinitions}' -c -M > taskdef.json
 
 
 echo "Registering the task definition...";
-echo $TASK_DEFINITION;
+cat taskdef.json;
 
 aws ecs register-task-definition --family ${TASK_NAME} --cli-input-json file://`pwd`/taskdef.json --region ${REGION};
 
