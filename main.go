@@ -107,7 +107,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 	case PushEvent:
 		var event github.PushEvent
 		if err := json.Unmarshal(body, &event); err != nil {
-			log.Println("ERROR: Couldn't parse push event payload")
+			log.Printf("ERROR: Couldn't parse push event payload, %v\n", err)
 			http.Error(w, "", http.StatusBadRequest)
 			return
 		}
@@ -124,7 +124,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 		dockerfileUrl := fmt.Sprintf("https://%s:x-oauth-basic@raw.githubusercontent.com/%s/%s/Dockerfile", githubToken, repositoryFullname, commitHash)
 		response, err := http.Get(dockerfileUrl)
 		if err != nil {
-			log.Printf("Failed to check Dockerfile for the repository %v\n", repositoryFullname)
+			log.Printf("Failed to check Dockerfile for the repository %v, %v\n", repositoryFullname, err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
