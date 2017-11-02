@@ -136,6 +136,8 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Println("No Dockerfile found...")
+	default:
+		log.Println("Unknown github event...")
 	}
 
 	events = append(events, Event{CreatedAt: time.Now(), Payload: string(body), PayloadHeaders: r.Header, Source: eventSourceGithub})
