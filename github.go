@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -35,12 +36,14 @@ func checkFileExists(repositoryFullname, path, ref, token string) (bool, error) 
 	request, err := http.NewRequest("HEAD", url, nil)
 	request.Header.Add("Authorization", fmt.Sprintf("token %s", token))
 
+	log.Printf("Checking dockerfile at %s\n", url)
 	client := &http.Client{}
 	res, err := client.Do(request)
 	if err != nil {
 		return false, err
 	}
 
+	log.Printf("Check return status code: %v", res.StatusCode)
 	if res.StatusCode == 200 {
 		return true, nil
 	}
