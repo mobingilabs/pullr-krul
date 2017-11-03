@@ -131,7 +131,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 
 		body, err := ioutil.ReadAll(response.Body)
 		if err == nil {
-			log.Printf("Dockerfile check response: (%v) %v", response.StatusCode, string(body))
+			log.Printf("Dockerfile check response at %v: (%v) %v", dockerfileUrl, response.StatusCode, string(body))
 		}
 
 		dockerFileExists := response.StatusCode >= 200 && response.StatusCode < 300
