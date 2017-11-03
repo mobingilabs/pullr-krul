@@ -118,24 +118,17 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 		// to another goproc because github has request timeout set to 10 seconds. It seems better to
 		// return a response asap.
 		// (see: https://developer.github.com/changes/2017-09-12-changes-to-maximum-webhook-timeout-period/)
-		githubToken := "3733101557ce4f040918e052db6370ab44b63b92"
+		githubToken := "b828c63ce773403f855ee3dcfa7ee0ed27c2a88a"
 		repositoryFullname := *event.Repo.FullName
 		commitHash := *event.After
-		dockerfileUrl := fmt.Sprintf("https://%s:x-oauth-basic@raw.githubusercontent.com/%s/%s/Dockerfile", githubToken, repositoryFullname, commitHash)
-		response, err := http.Get(dockerfileUrl)
+		dockerfileExists, err := checkFileExists(repositoryFullname, "Dockerfile", commitHash, githubToken)
 		if err != nil {
 			log.Printf("Failed to check Dockerfile for the repository %v, %v\n", repositoryFullname, err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
 
-		body, err := ioutil.ReadAll(response.Body)
-		if err == nil {
-			log.Printf("Dockerfile check response at %v: (%v) %v", dockerfileUrl, response.StatusCode, string(body))
-		}
-
-		dockerFileExists := response.StatusCode >= 200 && response.StatusCode < 300
-		if dockerFileExists {
+		if dockerfileExists {
 			log.Printf("Dispatching build action for %s...\n", repositoryFullname)
 			// TODO: Dispatch build action on queue
 		}
