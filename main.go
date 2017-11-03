@@ -120,7 +120,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 		// (see: https://developer.github.com/changes/2017-09-12-changes-to-maximum-webhook-timeout-period/)
 		githubToken := "3733101557ce4f040918e052db6370ab44b63b92"
 		repositoryFullname := *event.Repo.FullName
-		commitHash := *event.HeadCommit.SHA
+		commitHash := *event.After
 		dockerfileUrl := fmt.Sprintf("https://%s:x-oauth-basic@raw.githubusercontent.com/%s/%s/Dockerfile", githubToken, repositoryFullname, commitHash)
 		response, err := http.Get(dockerfileUrl)
 		if err != nil {
