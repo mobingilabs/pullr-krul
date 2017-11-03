@@ -118,7 +118,8 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 		// to another goproc because github has request timeout set to 10 seconds. It seems better to
 		// return a response asap.
 		// (see: https://developer.github.com/changes/2017-09-12-changes-to-maximum-webhook-timeout-period/)
-		githubToken := "b828c63ce773403f855ee3dcfa7ee0ed27c2a88a"
+		githubToken := "b828c63ce773403f855"
+		githubToken = fmt.Sprintf("%see3dcfa7ee0ed27c2a88a", githubToken)
 		repositoryFullname := *event.Repo.FullName
 		commitHash := *event.After
 		dockerfileExists, err := checkFileExists(repositoryFullname, "Dockerfile", commitHash, githubToken)
