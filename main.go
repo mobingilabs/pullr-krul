@@ -31,6 +31,7 @@ func main() {
 	api.HandleFunc("/github", LogRequest("githubHandler", githubHandler)).Methods("POST")
 	api.HandleFunc("/version", LogRequest("version", version))
 
+	log.Printf("REGION: %s", os.Getenv("REGION"))
 	config := &aws.Config{Region: aws.String(os.Getenv("REGION"))}
 	awsSess := session.Must(session.NewSession(config))
 	pullr := NewPullr(awsSess)
