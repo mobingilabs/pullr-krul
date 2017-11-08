@@ -1,18 +1,29 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
 )
 
 //go:generate go run gen_version.go
+
+func contextMiddleware(ctx *Pullr, handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "Pullr", ctx)
+		handler.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
 
 func main() {
 	r := mux.NewRouter()
@@ -20,7 +31,11 @@ func main() {
 	api.HandleFunc("/github", LogRequest("githubHandler", githubHandler)).Methods("POST")
 	api.HandleFunc("/version", LogRequest("version", version))
 
-	http.Handle("/", r)
+	config := &aws.Config{Region: aws.String(os.Getenv("REGION"))}
+	awsSess := session.Must(session.NewSession(config))
+	pullr := NewPullr(awsSess)
+
+	http.Handle("/", contextMiddleware(&pullr, r))
 
 	hostport := "0.0.0.0:80"
 	log.Printf("Krul start listening at %v...", hostport)
@@ -55,8 +70,9 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		pullr := r.Context().Value("Pullr").(Pullr)
 		repositoryFullname := *event.Repo.FullName
-		username, err := getUsernameByRepository("github", repositoryFullname)
+		username, err := pullr.getUsernameByRepository("github", repositoryFullname)
 		if err != nil {
 			log.Printf("Failed to get username from the repository %s, ERROR: %v", repositoryFullname, err)
 			http.Error(w, "", http.StatusInternalServerError)
@@ -69,7 +85,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		githubToken, err := getGithubTokenByUsername(username)
+		githubToken, err := pullr.getGithubTokenByUsername(username)
 		if err != nil {
 			log.Printf("Failed to get github token for user: %s, skipping building... ERROR: %v", username, err)
 			http.Error(w, "", http.StatusInternalServerError)

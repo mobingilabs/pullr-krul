@@ -9,11 +9,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-func getUsernameByRepository(provider, repository string) (string, error) {
-	cfg := &aws.Config{}
-	sess := session.Must(session.NewSession(cfg))
-	dynamo := dynamodb.New(sess)
+type Pullr struct {
+	awsSess *session.Session
+	dynamo  *dynamodb.DynamoDB
+}
 
+func NewPullr(awsSession *session.Session) Pullr {
+	dynamo := dynamodb.New(awsSession)
+	return Pullr{awsSess: awsSession, dynamo: dynamo}
+}
+
+func (p *Pullr) getUsernameByRepository(provider, repository string) (string, error) {
 	repositoryPair := fmt.Sprintf("%s:%s", provider, repository)
 	getInput := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
@@ -22,7 +28,7 @@ func getUsernameByRepository(provider, repository string) (string, error) {
 		TableName: aws.String("PULLR_REPOS"),
 	}
 
-	result, err := dynamo.GetItem(getInput)
+	result, err := p.dynamo.GetItem(getInput)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			if aerr.Code() == dynamodb.ErrCodeResourceNotFoundException {
@@ -36,18 +42,14 @@ func getUsernameByRepository(provider, repository string) (string, error) {
 	return *result.Item["username"].S, nil
 }
 
-func getGithubTokenByUsername(username string) (string, error) {
-	cfg := &aws.Config{}
-	sess := session.Must(session.NewSession(cfg))
-	dynamo := dynamodb.New(sess)
-
+func (p *Pullr) getGithubTokenByUsername(username string) (string, error) {
 	getInput := &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"username": {S: aws.String(username)},
 		},
 	}
 
-	result, err := dynamo.GetItem(getInput)
+	result, err := p.dynamo.GetItem(getInput)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			if aerr.Code() == dynamodb.ErrCodeResourceNotFoundException {
