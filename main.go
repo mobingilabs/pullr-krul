@@ -70,7 +70,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		pullr := r.Context().Value("Pullr").(Pullr)
+		pullr := r.Context().Value("Pullr").(*Pullr)
 		repositoryFullname := *event.Repo.FullName
 		username, err := pullr.getUsernameByRepository("github", repositoryFullname)
 		if err != nil {
