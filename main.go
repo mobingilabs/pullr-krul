@@ -58,7 +58,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 		repositoryFullname := *event.Repo.FullName
 		username, err := getUsernameByRepository("github", repositoryFullname)
 		if err != nil {
-			log.Printf("Failed to get username from the repository")
+			log.Printf("Failed to get username from the repository %s, ERROR: %v", repositoryFullname, err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
@@ -71,7 +71,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 
 		githubToken, err := getGithubTokenByUsername(username)
 		if err != nil {
-			log.Printf("Failed to get github token for user: %s, skipping building...", username)
+			log.Printf("Failed to get github token for user: %s, skipping building... ERROR: %v", username, err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
