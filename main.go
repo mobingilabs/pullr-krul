@@ -76,7 +76,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if githubToken == "" {
-			log.Printf("Github token for user \"%s\" not found.")
+			log.Printf("Github token for user \"%s\" not found.", username)
 			triggerPullrCallback("push", "payload")
 			ok(w)
 			return
