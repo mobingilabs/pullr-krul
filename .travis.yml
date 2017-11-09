@@ -34,7 +34,7 @@ script:
       aws --version;
       eval $(aws ecr get-login --region ${REGION});
       docker images;
-      docker build --build-arg PULLR_TAG=${VERSION_TAG} --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --build-arg DEV_PULLR_SNS_ARN=${DEV_PULLR_SNS_ARN} --build-arg AWS_REGION=${AWS_REGION} -t pullrkrul:${VERSION_TAG} .;
+      docker build --build-arg PULLR_TAG=${VERSION_TAG} --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --build-arg DEV_PULLR_SNS_ARN=${DEV_PULLR_SNS_ARN} --build-arg AWS_REGION=${REGION} -t pullrkrul:${VERSION_TAG} .;
       docker tag ${IMAGE_NAME}:${VERSION_TAG} ${IMAGE_URI}:${VERSION_TAG};
       docker push ${IMAGE_URI}:${VERSION_TAG};
       if [[ $TRAVIS_TAG == *"dev"* ]]; then
