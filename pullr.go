@@ -73,18 +73,18 @@ func (p *Pullr) dispatchBuildAction(provider, repository string) error {
 	var qc pullr.QueueClient
 
 	type buildData struct {
-		provider   string
-		repository string
+		Provider   string `json:"provider"`
+		Repository string `json:"repository"`
 	}
 
 	payload, err := json.Marshal(struct {
-		action string
-		data   buildData
+		Action string    `json:"action"`
+		Data   buildData `json:"data"`
 	}{
-		action: "build",
-		data: buildData{
-			provider:   provider,
-			repository: repository,
+		Action: "build",
+		Data: buildData{
+			Provider:   provider,
+			Repository: repository,
 		},
 	})
 
