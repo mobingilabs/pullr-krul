@@ -47,7 +47,7 @@ func (p *Pullr) getGithubTokenByUsername(username string) (string, error) {
 		Key: map[string]*dynamodb.AttributeValue{
 			"username": {S: aws.String(username)},
 		},
-		TableName: aws.String("PULLR_REPOS"),
+		TableName: aws.String("MC_IDENTITY"),
 	}
 
 	result, err := p.dynamo.GetItem(getInput)
