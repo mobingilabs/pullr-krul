@@ -109,7 +109,11 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 
 		if dockerfileExists {
 			log.Printf("Dispatching build action for %s...\n", repositoryFullname)
-			// TODO: Dispatch build action on queue
+			if err := pullr.dispatchBuildAction("github", repositoryFullname); err != nil {
+				log.Printf("Failed to dispatch build action: %v\n", err)
+				http.Error(w, "", http.StatusInternalServerError)
+				return
+			}
 		}
 	default:
 		log.Printf("Unknown github event: \"%v\"...\n", event)

@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/mobingilabs/mobingi-sdk-go/mobingi/registry/pullr"
 )
 
 type Pullr struct {
@@ -34,7 +36,6 @@ func (p *Pullr) getUsernameByRepository(provider, repository string) (string, er
 			if aerr.Code() == dynamodb.ErrCodeResourceNotFoundException {
 				return "", nil
 			}
-			return "", aerr
 		}
 		return "", err
 	}
@@ -56,7 +57,6 @@ func (p *Pullr) getGithubTokenByUsername(username string) (string, error) {
 			if aerr.Code() == dynamodb.ErrCodeResourceNotFoundException {
 				return "", nil
 			}
-			return "", aerr
 		}
 		return "", err
 	}
@@ -67,4 +67,30 @@ func (p *Pullr) getGithubTokenByUsername(username string) (string, error) {
 	}
 
 	return *githubTokenItem.S, nil
+}
+
+func (p *Pullr) dispatchBuildAction(provider, repository string) error {
+	var qc pullr.QueueClient
+
+	type buildData struct {
+		provider   string
+		repository string
+	}
+
+	payload, err := json.Marshal(struct {
+		action string
+		data   buildData
+	}{
+		action: "build",
+		data: buildData{
+			provider:   provider,
+			repository: repository,
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return qc.Publish(string(payload))
 }
