@@ -69,12 +69,13 @@ func (p *Pullr) getGithubTokenByUsername(username string) (string, error) {
 	return *githubTokenItem.S, nil
 }
 
-func (p *Pullr) dispatchBuildAction(provider, repository string) error {
+func (p *Pullr) dispatchBuildAction(provider, repository, ref string) error {
 	var qc pullr.QueueClient
 
 	type buildData struct {
 		Provider   string `json:"provider"`
 		Repository string `json:"repository"`
+		Ref        string `json:"tag"`
 	}
 
 	payload, err := json.Marshal(struct {
@@ -85,6 +86,7 @@ func (p *Pullr) dispatchBuildAction(provider, repository string) error {
 		Data: buildData{
 			Provider:   provider,
 			Repository: repository,
+			Ref:        ref,
 		},
 	})
 
