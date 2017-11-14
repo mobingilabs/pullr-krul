@@ -75,7 +75,7 @@ func (p *Pullr) dispatchBuildAction(provider, repository, ref, commit string) er
 	type buildData struct {
 		Provider   string `json:"provider"`
 		Repository string `json:"repository"`
-		Ref        string `json:"tag"`
+		Ref        string `json:"ref"`
 		Commit     string `json:"commit"`
 	}
 
