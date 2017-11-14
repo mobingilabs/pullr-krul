@@ -112,7 +112,7 @@ func githubHandler(w http.ResponseWriter, r *http.Request) {
 				ref = *event.Ref
 			}
 
-			if err := pullr.dispatchBuildAction("github", repositoryFullname, ref); err != nil {
+			if err := pullr.dispatchBuildAction("github", repositoryFullname, ref, *event.After); err != nil {
 				log.Printf("Failed to dispatch build action: %v\n", err)
 				http.Error(w, "", http.StatusInternalServerError)
 				return
